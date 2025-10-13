@@ -1,0 +1,17 @@
+name: Linting
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+
+jobs:
+  lint:
+    uses: cap-js/.github/.github/workflows/lint.yml@main
+    secrets: inherit

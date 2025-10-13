@@ -1,0 +1,11 @@
+# Dependency directories
+node_modules/
+
+# Output of 'npm pack'
+*.tgz
+
+# Build / generate output
+dist/
+
+# Other
+*.DS_Store

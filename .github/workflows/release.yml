@@ -1,0 +1,38 @@
+name: Release
+
+on:
+  # push:
+  #   branches: [main]
+
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: Dry run
+        required: false
+        default: false
+        type: boolean
+      tag:
+        description: The tag to use during publish, values are latest, next
+        required: false
+        default: latest
+        type: choice
+        options:
+          - latest
+          - next
+
+permissions:
+  contents: write
+  id-token: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+
+jobs:
+  release:
+    uses: cap-js/.github/.github/workflows/release.yml@main
+    secrets: inherit
+    with:
+      dry-run: ${{ github.event.inputs.dry-run || false }}
+      tag: ${{ github.event.inputs.tag || 'latest'}}
