@@ -1,6 +1,17 @@
 {
   "name": "@cap-js/console",
+  "description": "JavaScript plugin for CAP applications to communicate with the CAP console",
   "version": "1.0.0",
+  "repository": "github:cap-js/console",
+  "homepage": "https://cap.cloud.sap/",
+  "author": "SAP SE (https://www.sap.com)",
+  "license": "Apache-2.0",
+  "keywords": [
+    "CAP",
+    "CDS",
+    "Node.js",
+    "CAP console"
+  ],
   "type": "module",
   "scripts": {
     "build": "tsc",
@@ -10,15 +21,6 @@
     "lint": "eslint --max-warnings 0 --no-warn-ignored && tsc --noEmit",
     "lint:fix": "eslint --max-warnings 0 --no-warn-ignored --fix && tsc --noEmit"
   },
-  "keywords": [
-    "CAP",
-    "CDS",
-    "Node.js",
-    "CAP console"
-  ],
-  "author": "SAP SE (https://www.sap.com)",
-  "license": "Apache-2.0",
-  "description": "",
   "files": [
     "dist",
     "cds-plugin.js",
