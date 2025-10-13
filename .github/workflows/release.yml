@@ -1,9 +1,6 @@
 name: Release
 
 on:
-  # push:
-  #   branches: [main]
-
   workflow_dispatch:
     inputs:
       dry-run:
@@ -30,9 +27,44 @@ concurrency:
 
 
 jobs:
-  release:
-    uses: cap-js/.github/.github/workflows/release.yml@main
-    secrets: inherit
-    with:
-      dry-run: ${{ github.event.inputs.dry-run == 'true' }}
-      tag: ${{ github.event.inputs.tag || 'latest'}}
+  publish-npm:
+    runs-on: ubuntu-latest
+    environment: npm
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org/
+
+      - name: Run Unit Tests
+        run: |
+          npm ci
+          npm run test
+
+      - name: Run Build
+        run: npm run build
+
+      - name: Publish to npm
+        run: npm publish --tag ${{ github.event.inputs.tag || 'latest' }} --access public --provenance ${{ github.event.inputs.dry-run == 'true' && '--dry-run' || '' }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Get Version
+        id: get-version
+        run: |
+          echo "version=$(npm pkg get version | tr -d '"')" >> $GITHUB_OUTPUT
+
+      - name: Parse CHANGELOG.md
+        id: parse-changelog
+        uses: schwma/parse-changelog-action@v1.0.0
+        with:
+          version: '${{ steps.get-version.outputs.version }}'
+          title-regex: '^##\s+\[\d.*$'
+
+      - name: Create a GitHub release
+        if: ${{ github.event.inputs.dry-run != 'true' }}
+        uses: ncipollo/release-action@v1
+        with:
+          tag: 'v${{ steps.get-version.outputs.version }}'
