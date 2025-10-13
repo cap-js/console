@@ -11,6 +11,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ### Deprecated
 ### Removed
 ### Fixed
+### Security
+
+## [1.0.1] - 2025-10-13
+
+### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
 - Compile TypeScript files in Release pipeline
 ### Security
 
