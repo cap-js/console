@@ -3,6 +3,7 @@ import vitest from '@vitest/eslint-plugin';
 import { globalIgnores } from 'eslint/config';
 import eslintPrettierRecommended from 'eslint-plugin-prettier/recommended';
 import simpleImportSort from 'eslint-plugin-simple-import-sort';
+import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 const simpleImportSortConfig = {
@@ -51,6 +52,13 @@ const vitestConfig = {
 
 export default tseslint.config(
   globalIgnores(['**/node_modules/', '.git/', 'dist/', 'release/', '**/gen/**']),
+  {
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
+    },
+  },
   simpleImportSortConfig,
   vitestConfig,
   eslint.configs.recommended,
