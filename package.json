@@ -1,7 +1,7 @@
 {
   "name": "@cap-js/console",
   "description": "JavaScript plugin for CAP applications to communicate with the CAP console",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "repository": "github:cap-js/console",
   "homepage": "https://cap.cloud.sap/",
   "author": "SAP SE (https://www.sap.com)",
