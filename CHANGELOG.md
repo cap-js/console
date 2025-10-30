@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ### Deprecated
 ### Removed
 ### Fixed
+- Prevented CAP Console from blocking Jest test execution by conditionally loading the plugin. (Resolves #4)
 ### Security
 
 ## [1.0.1] - 2025-10-13
