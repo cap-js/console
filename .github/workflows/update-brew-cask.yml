@@ -1,0 +1,160 @@
+name: Update CAP Console Cask
+
+on:
+  schedule:
+    # Run nightly at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  update-cask:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyyaml requests
+
+      - name: Check for new version and update cask
+        id: update
+        run: |
+          python << 'EOF'
+          import yaml
+          import requests
+          import re
+          import hashlib
+          import os
+          import sys
+
+          # Fetch the latest version from the updater service
+          try:
+              response = requests.get('https://cap-console-updater.cfapps.eu10-005.hana.ondemand.com/latest-mac.yml')
+              response.raise_for_status()
+              latest_data = yaml.safe_load(response.text)
+              latest_version = latest_data['version']
+              print(f"Latest version available: {latest_version}")
+          except Exception as e:
+              print(f"Error fetching latest version: {e}")
+              sys.exit(1)
+
+          # Read the current cask file
+          cask_file = 'Casks/cap-console.rb'
+          try:
+              with open(cask_file, 'r') as f:
+                  cask_content = f.read()
+          except Exception as e:
+              print(f"Error reading cask file: {e}")
+              sys.exit(1)
+
+          # Extract current version from cask
+          version_match = re.search(r'version\s+"([^"]+)"', cask_content)
+          if not version_match:
+              print("Could not find version in cask file")
+              sys.exit(1)
+
+          current_version = version_match.group(1)
+          print(f"Current version in cask: {current_version}")
+
+          # Compare versions (simple string comparison for semantic versioning)
+          def version_tuple(v):
+              return tuple(map(int, (v.split("."))))
+
+          if version_tuple(latest_version) <= version_tuple(current_version):
+              print("No update needed")
+              with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+                  f.write("needs_update=false\n")
+              sys.exit(0)
+
+          print(f"Update needed: {current_version} -> {latest_version}")
+
+          # Download DMG files and calculate SHA256
+          def download_and_hash(url):
+              print(f"Downloading {url}...")
+              response = requests.get(url)
+              response.raise_for_status()
+              sha256_hash = hashlib.sha256(response.content).hexdigest()
+              print(f"SHA256 for {url}: {sha256_hash}")
+              return sha256_hash
+
+          try:
+              arm64_url = f"https://cap-console-updater.cfapps.eu10-005.hana.ondemand.com/arm64-cap-console.dmg"
+              x64_url = f"https://cap-console-updater.cfapps.eu10-005.hana.ondemand.com/x64-cap-console.dmg"
+
+              arm64_sha = download_and_hash(arm64_url)
+              x64_sha = download_and_hash(x64_url)
+          except Exception as e:
+              print(f"Error downloading DMG files: {e}")
+              sys.exit(1)
+
+          # Update the cask file
+          # Update version
+          cask_content = re.sub(
+              r'version\s+"[^"]+"',
+              f'version "{latest_version}"',
+              cask_content
+          )
+
+          # Update SHA256 values
+          sha_pattern = r'sha256\s+arm:\s*"[^"]+",\s*intel:\s*"[^"]+"'
+          new_sha = f'sha256 arm:          "{arm64_sha}",\n         intel:        "{x64_sha}"'
+          cask_content = re.sub(sha_pattern, new_sha, cask_content, flags=re.MULTILINE)
+
+          # Write updated content back to file
+          try:
+              with open(cask_file, 'w') as f:
+                  f.write(cask_content)
+              print("Cask file updated successfully")
+          except Exception as e:
+              print(f"Error writing cask file: {e}")
+              sys.exit(1)
+
+          # Set outputs for next steps
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+              f.write("needs_update=true\n")
+              f.write(f"new_version={latest_version}\n")
+              f.write(f"old_version={current_version}\n")
+
+          EOF
+
+      - name: Configure Git
+        if: steps.update.outputs.needs_update == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+      - name: Commit changes
+        if: steps.update.outputs.needs_update == 'true'
+        run: |
+          git add Casks/cap-console.rb
+          git commit -m "Update CAP Console to version ${{ steps.update.outputs.new_version }}"
+
+      - name: Create Pull Request
+        if: steps.update.outputs.needs_update == 'true'
+        uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: update-cap-console-${{ steps.update.outputs.new_version }}
+          title: 'Update CAP Console to version ${{ steps.update.outputs.new_version }}'
+          body: |
+            This is an automated pull request to update CAP Console from version ${{ steps.update.outputs.old_version }} to ${{ steps.update.outputs.new_version }}.
+
+            Changes made:
+            - Updated version from ${{ steps.update.outputs.old_version }} to ${{ steps.update.outputs.new_version }}
+            - Updated SHA256 checksums for both ARM64 and Intel architectures
+
+            The new version was detected from the official updater service at:
+            https://cap-console-updater.cfapps.eu10-005.hana.ondemand.com/latest-mac.yml
+
+            Please review and merge if everything looks correct.
+          delete-branch: true
