@@ -1,4 +1,4 @@
-name: Tests
+name: Test and Scan
 
 on:
   pull_request:
@@ -18,13 +18,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.version }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.version }}
 
-    - name: Run Unit Tests
-      run: |
-        npm ci
-        npm run test
+      - name: Run Unit Tests
+        run: |
+          npm ci
+          npm run test:coverage
+
+      - name: Sonar Scan
+        if: matrix.version == 22
+        uses: SonarSource/sonarqube-scan-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
