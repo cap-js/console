@@ -2,7 +2,7 @@
 
 ### Install
 
-`brew tap cap-js/console`
+`brew tap cap-js/console https://github.com/cap-js/console`
 
 `brew install --cask cap-console`
 
