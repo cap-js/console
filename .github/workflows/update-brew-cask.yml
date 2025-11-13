@@ -127,17 +127,13 @@ jobs:
 
           EOF
 
-      - name: Configure Git
+      - name: Commit to Git
         if: steps.update.outputs.needs_update == 'true'
         run: |
-          git config --local user.email "action@github.com"
+          git config --local user.email "github-action@sap.com"
           git config --local user.name "GitHub Action"
-
-      - name: Commit changes
-        if: steps.update.outputs.needs_update == 'true'
-        run: |
           git add Casks/cap-console.rb
-          git commit -m "Update CAP Console to version ${{ steps.update.outputs.new_version }}"
+          git commit -m "Update Cask CAP Console to version ${{ steps.update.outputs.new_version }}"
 
       - name: Create Pull Request
         if: steps.update.outputs.needs_update == 'true'
