@@ -14,7 +14,7 @@ jobs:
   test:
     strategy:
       matrix:
-        version: [22, 20]
+        version: [24, 22, 20]
     runs-on: ubuntu-latest
 
     steps:
