@@ -112,7 +112,7 @@ describe('ExtendedCdsLogFactory', () => {
     });
 
     // Test failing for not emitting event properly
-    describe.skip.each([
+    describe.todo.each([
       ['originalLogFactory', originalLogFactory, false],
       ['extendedLogFactory', extendedLogFactory, true],
     ] as const)('%s', (_, logFactory, shouldBroadCastEvent) => {
