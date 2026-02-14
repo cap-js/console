@@ -31,7 +31,7 @@ jobs:
 
       - name: Sonar Scan
         if: matrix.version == 22
-        uses: SonarSource/sonarqube-scan-action@a31c9398be7ace6bbfaf30c0bd5d415f843d45e9
+        uses: SonarSource/sonarqube-scan-action@b9f37f9de00914b9db556335bd46019dbafed98d
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
