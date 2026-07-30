@@ -24,7 +24,7 @@ concurrency:
 
 jobs:
   prepare-next-version:
-    uses: cap-js/.github/.github/workflows/prepare-next-version.yml@main
+    uses: cap-js/.github/.github/workflows/prepare-next-version.yml@d7f6729c11a3aff1d1e2704df8d1ac47bb2fd927 # main
     secrets: inherit
     with:
       increment: ${{ github.event.inputs.increment }}
